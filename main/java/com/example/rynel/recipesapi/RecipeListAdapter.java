@@ -2,6 +2,7 @@ package com.example.rynel.recipesapi;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,9 +21,10 @@ import java.util.List;
 
 public class RecipeListAdapter extends RecyclerView.Adapter<RecipeListAdapter.ViewHolder>{
 
-    //create an array list walmartItemList
+    //create an array list Item List in Example.class
     List<Recipe> recipeItems = new ArrayList<>();
     Context context;
+    private static final String TAG = "Recipe Items";
 
     public RecipeListAdapter(List<Recipe> recipeItemList){
 
@@ -33,6 +35,8 @@ public class RecipeListAdapter extends RecyclerView.Adapter<RecipeListAdapter.Vi
 
     @Override
     public RecipeListAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+
+        Log.d(TAG, "onCreateViewHolder: ");
 
         context = parent.getContext();
 
@@ -54,7 +58,7 @@ public class RecipeListAdapter extends RecyclerView.Adapter<RecipeListAdapter.Vi
 
 
 
-        holder.recipe.setText((CharSequence) recipe.getDietLabels());
+        holder.recipe.setText(recipe.getQ());  //set correct method
     }
 
     @Override

@@ -7,7 +7,7 @@ import com.google.gson.annotations.SerializedName;
 import java.io.Serializable;
 import java.util.List;
 
-public class Recipe implements Serializable
+public class Recipe extends Example implements Serializable
 {
 
     @SerializedName("uri")

@@ -1,6 +1,7 @@
 package com.example.rynel.recipesapi;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -16,6 +17,7 @@ import android.widget.Toast;
 
 import com.example.rynel.recipesapi.data.RemoteDataSource;
 import com.example.rynel.recipesapi.model.Example;
+import com.example.rynel.recipesapi.model.Hit;
 import com.example.rynel.recipesapi.model.Recipe;
 
 import java.util.ArrayList;
@@ -32,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
 
     //declaring objects as per RecyclerView (layout/item animator), DatabaseHelper, and adapter
     RecyclerView recyclerViewQuery;
-    List<Recipe> recipeItems = new ArrayList<>();
+    ArrayList<Recipe> recipeItems = new ArrayList<>();
     private RecyclerView.LayoutManager layoutManager;
     private RecyclerView.ItemAnimator itemAnimator;
     private RecipeListAdapter recipeListAdapter;
@@ -40,8 +42,12 @@ public class MainActivity extends AppCompatActivity {
     EditText queryView;
     TextView state;
 
+    private String query;
+    private int from, to;
+
     //starting position for search
     int start = 1;
+    int cols = 3;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,11 +60,20 @@ public class MainActivity extends AppCompatActivity {
         searchBtn = findViewById(R.id.btnSearch);
         layoutManager = new GridLayoutManager(this, 3);
         itemAnimator = new DefaultItemAnimator();
-        recyclerViewQuery.setLayoutManager(layoutManager);
-        recyclerViewQuery.setItemAnimator(itemAnimator);
         state = findViewById(R.id.tvState);
 
-        //
+        query = getIntent().getStringExtra(getString(R.string.search_for_recipes));
+        setTitle(query);
+
+        if( getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE )
+            cols = 5;
+
+
+        //layout in rv
+        GridLayoutManager manager = new GridLayoutManager(this, cols);
+        recyclerViewQuery.setLayoutManager(manager);
+        recyclerViewQuery.setItemAnimator(new DefaultItemAnimator());
+
         recyclerViewQuery.addOnScrollListener( new EndlessRecyclerViewScrollListener(layoutManager) {
             @Override
             public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
@@ -68,12 +83,15 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
+        search(query, 0, 20);
 
     }
 
 
 
+    public void search(String q, int from, int to) {
+        state.setText("Searching...");
+    }
 
     public void search(View view) {
 
@@ -103,12 +121,28 @@ public class MainActivity extends AppCompatActivity {
                             @Override
                             public void onNext(Example example) {
 
-                                int r = 0;
-                            Log.d(TAG, "onNext: ");
-                            Log.d(TAG, "onNext: query: " + example.getHits());
-                            Log.d(TAG, "onNext: total count: " + example.getCount());
-    //                        Log.d(TAG, "onNext: get start: " + recipeLookup.getBookmarked());
+                                Log.d(TAG, "onNext: ");
+                                Log.d(TAG, "onNext: query: " + example.getHits());
+                                Log.d(TAG, "onNext: total count: " + example.getCount());
 
+
+                                if (example.getCount() > 0) {
+                                    List<Hit> hitList = example.getHits();
+
+                                    for (Hit h : hitList) {
+                                        recipeItems.add(h.getRecipe());
+                            /*
+
+                            if (example.getCount() > 0) {
+                            List<Hit> hitList = example.getHits();
+
+                            for (Hit h : hitList) {
+                                recipeItems.add(h.getRecipe());
+}
+
+                             */
+                                    }
+                                }
                             }
 
                             @Override
@@ -128,10 +162,14 @@ public class MainActivity extends AppCompatActivity {
                                 //set adapter on complete
                                 recipeListAdapter = new RecipeListAdapter(recipeItems);
                                 recyclerViewQuery.setAdapter(recipeListAdapter);
-//
-//                        String s = (recipeItems.size() > 0) ? "" : "No Results";
-//                        state.setText(s);
 
+                                String s = (recipeItems.size() > 0) ? "" : "No Results";
+                                state.setText(s);
+
+
+                                //fixme: missing display for recyclerview ---fixed
+                                //fixme: add ls orientation and add 2 columns to expand view -- fixed
+                                //fixme: add save config//make it work after landscape change
                             }
                         }));
 //                    @Override
@@ -183,11 +221,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-//    public void nextPage( String query ) {
-//        RemoteDataSource.getRecipe( query, start )
+//    public void nextPage( String query, int to ) {
+//        RemoteDataSource.getRecipe( query, start, to )
 //                .observeOn( AndroidSchedulers.mainThread() )
 //                .subscribeOn(  Schedulers.io() )
-//                .subscribe(new Observer<Recipe>() {
+//                .subscribe(new Observer<Example>() {
 //                    @Override
 //                    public void onSubscribe(@NonNull Disposable d) {
 //                        Log.d(TAG, "onSubscribe: ");
@@ -195,10 +233,18 @@ public class MainActivity extends AppCompatActivity {
 //                    }
 //
 //                    @Override
-//                    public void onNext(@NonNull Recipe recipeLookup) {
-//                        for( Ingredient r : recipeLookup.getIngredients() )
-//                            recipeLookup.getLabel( r );
+//                    public void onNext(Example example) {
+//
+//                        for( Hit hit : example.getHits() )
+//                            example.getFrom( hit );
+//
 //                    }
+//
+////                    @Override
+////                    public void onNext(@NonNull Recipe recipeLookup) {
+////                        for( Ingredient r : recipeLookup.getIngredients() )
+////                            recipeLookup.getLabel( r );
+////                    }
 //
 //                    @Override
 //                    public void onError(@NonNull Throwable e) {
